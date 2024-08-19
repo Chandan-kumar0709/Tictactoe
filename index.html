@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic-Tac-Toe Game</title>
-    <style>body {
+    <style type="text/css">
+    body {
         font-family: Arial, sans-serif;
         display: flex;
         flex-direction: column;
@@ -50,6 +51,16 @@
         cursor: pointer;
     }
     
+ .x::before {
+    content: "X";
+    color: #FF0000;
+}
+
+.circle::before {
+    content: "O";
+    color: #0000FF;
+}
+
     .cell:hover {
         background-color: #f7f7f7;
     }
@@ -59,6 +70,24 @@
         font-size: 1rem;
         cursor: pointer;
     }
+    .win {
+    background-color: #4CAF50; /* Green background for winning cells */
+    color: white;              /* White text color */
+}
+#scoreboard {
+    margin-top: 10px;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    max-width: 300px;
+}
+
+#scoreboard div {
+    margin: 0 10px;
+}
+
+
     
     @media (max-width: 600px) {
         .tic-tac-toe {
@@ -77,6 +106,10 @@
     <header>
         <h1>Tic-Tac-Toe Game</h1>
         <div id="datetime"></div>
+        <div id="scoreboard">
+            <div>X Wins: <span id="xScore">0</span></div>
+            <div>O Wins: <span id="oScore">0</span></div>
+        </div>
     </header>
     <main>
         <div class="tic-tac-toe">
@@ -91,11 +124,16 @@
             <div class="cell" data-cell></div>
         </div>
         <button id="restartButton">Restart Game</button>
+        <button id="resetScoreButton">Reset Score</button> <!-- New Reset Score Button -->
     </main>
+    
     </body>
-    <script>
-        const cells = document.querySelectorAll('[data-cell]');
+    <script type="text/javascript">
+    const cells = Array.from(document.querySelectorAll('[data-cell]'));
 const restartButton = document.getElementById('restartButton');
+const resetScoreButton = document.getElementById('resetScoreButton');
+const xScoreElement = document.getElementById('xScore');
+const oScoreElement = document.getElementById('oScore');
 const winningCombinations = [
     [0, 1, 2],
     [3, 4, 5],
@@ -106,17 +144,22 @@ const winningCombinations = [
     [0, 4, 8],
     [2, 4, 6]
 ];
+let xScore = 0;
+let oScore = 0;
 let circleTurn;
+let gameActive = true;  // New variable to track game state
 
 startGame();
 
 restartButton.addEventListener('click', startGame);
+resetScoreButton.addEventListener('click', resetScore);
 
 function startGame() {
     circleTurn = false;
+    gameActive = true;
     cells.forEach(cell => {
-        cell.classList.remove('x');
-        cell.classList.remove('circle');
+        cell.classList.remove('x', 'circle', 'win');
+        cell.textContent = '';
         cell.removeEventListener('click', handleClick);
         cell.addEventListener('click', handleClick, { once: true });
     });
@@ -125,19 +168,24 @@ function startGame() {
 function handleClick(e) {
     const cell = e.target;
     const currentClass = circleTurn ? 'circle' : 'x';
+    if (!gameActive) return;  // Ignore clicks if the game is over
+
     placeMark(cell, currentClass);
     if (checkWin(currentClass)) {
-        setTimeout(() => alert(`${currentClass.toUpperCase()} Wins!`), 10);
-        startGame();
+        updateScore(currentClass);
+        highlightWinningCells(currentClass);
+        gameActive = false;  // Stop the game when a player wins
+        setTimeout(() => alert(`${currentClass.toUpperCase()} Wins!`), 200);
     } else if (isDraw()) {
-        setTimeout(() => alert('Draw!'), 10);
-        startGame();
+        gameActive = false;
+        setTimeout(() => alert('Draw!'), 200);
     } else {
         swapTurns();
     }
 }
 
 function placeMark(cell, currentClass) {
+    cell.textContent = currentClass === 'x' ? 'X' : 'O';
     cell.classList.add(currentClass);
 }
 
@@ -153,13 +201,40 @@ function checkWin(currentClass) {
     });
 }
 
+function highlightWinningCells(currentClass) {
+    winningCombinations.forEach(combination => {
+        if (combination.every(index => cells[index].classList.contains(currentClass))) {
+            combination.forEach(index => {
+                cells[index].classList.add('win');
+            });
+        }
+    });
+}
+
 function isDraw() {
-    return [...cells].every(cell => {
+    return cells.every(cell => {
         return cell.classList.contains('x') || cell.classList.contains('circle');
     });
 }
 
-// Date and Time based on Kolkata time
+function updateScore(currentClass) {
+    if (currentClass === 'x') {
+        xScore++;
+        xScoreElement.textContent = xScore;
+    } else if (currentClass === 'circle') {
+        oScore++;
+        oScoreElement.textContent = oScore;
+    }
+}
+
+function resetScore() {
+    xScore = 0;
+    oScore = 0;
+    xScoreElement.textContent = xScore;
+    oScoreElement.textContent = oScore;
+    startGame();
+}
+
 function updateTime() {
     const options = { timeZone: 'Asia/Kolkata', hour12: true, hour: 'numeric', minute: 'numeric', second: 'numeric' };
     const now = new Date().toLocaleTimeString('en-US', options);
@@ -168,7 +243,5 @@ function updateTime() {
 }
 
 setInterval(updateTime, 1000);
-
     </script>
-
 </html>
