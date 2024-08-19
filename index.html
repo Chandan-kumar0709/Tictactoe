@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe Game</title>
+    <style>body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+    }
+    
+    header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    #datetime {
+        font-size: 1.2rem;
+        margin-top: 10px;
+    }
+    
+    main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .tic-tac-toe {
+        display: grid;
+        grid-template-columns: repeat(3, 100px);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .cell {
+        width: 100px;
+        height: 100px;
+        background-color: #fff;
+        border: 2px solid #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        cursor: pointer;
+    }
+    
+    .cell:hover {
+        background-color: #f7f7f7;
+    }
+    
+    button {
+        padding: 10px 20px;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+    
+    @media (max-width: 600px) {
+        .tic-tac-toe {
+            grid-template-columns: repeat(3, 80px);
+        }
+    
+        .cell {
+            width: 80px;
+            height: 80px;
+            font-size: 1.5rem;
+        }
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Tic-Tac-Toe Game</h1>
+        <div id="datetime"></div>
+    </header>
+    <main>
+        <div class="tic-tac-toe">
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+        </div>
+        <button id="restartButton">Restart Game</button>
+    </main>
+    </body>
+    <script>
+        const cells = document.querySelectorAll('[data-cell]');
+const restartButton = document.getElementById('restartButton');
+const winningCombinations = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+];
+let circleTurn;
+
+startGame();
+
+restartButton.addEventListener('click', startGame);
+
+function startGame() {
+    circleTurn = false;
+    cells.forEach(cell => {
+        cell.classList.remove('x');
+        cell.classList.remove('circle');
+        cell.removeEventListener('click', handleClick);
+        cell.addEventListener('click', handleClick, { once: true });
+    });
+}
+
+function handleClick(e) {
+    const cell = e.target;
+    const currentClass = circleTurn ? 'circle' : 'x';
+    placeMark(cell, currentClass);
+    if (checkWin(currentClass)) {
+        setTimeout(() => alert(`${currentClass.toUpperCase()} Wins!`), 10);
+        startGame();
+    } else if (isDraw()) {
+        setTimeout(() => alert('Draw!'), 10);
+        startGame();
+    } else {
+        swapTurns();
+    }
+}
+
+function placeMark(cell, currentClass) {
+    cell.classList.add(currentClass);
+}
+
+function swapTurns() {
+    circleTurn = !circleTurn;
+}
+
+function checkWin(currentClass) {
+    return winningCombinations.some(combination => {
+        return combination.every(index => {
+            return cells[index].classList.contains(currentClass);
+        });
+    });
+}
+
+function isDraw() {
+    return [...cells].every(cell => {
+        return cell.classList.contains('x') || cell.classList.contains('circle');
+    });
+}
+
+// Date and Time based on Kolkata time
+function updateTime() {
+    const options = { timeZone: 'Asia/Kolkata', hour12: true, hour: 'numeric', minute: 'numeric', second: 'numeric' };
+    const now = new Date().toLocaleTimeString('en-US', options);
+    const date = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' });
+    document.getElementById('datetime').textContent = `${date} ${now}`;
+}
+
+setInterval(updateTime, 1000);
+
+    </script>
+
+</html>
